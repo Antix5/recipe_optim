@@ -1,0 +1,183 @@
+{
+  "recipe_title": "Simple Pancakes",
+  "ingredients": [
+    {
+      "raw_text": "1 cup all-purpose flour",
+      "ingredient_name": "all-purpose flour",
+      "original_quantity": "1",
+      "original_unit": "cup",
+      "preparation_notes": "",
+      "quantity_grams": 120.0,
+      "conversion_source": "LLM",
+      "conversion_notes": "Converted 1 cup of all-purpose flour to grams using a standard density of 120 grams per cup. This is an approximate value and can vary slightly depending on how the flour is packed.",
+      "nutritional_info": {
+        "source_ciqual_name": "Wheat flour, type 65",
+        "kcal": 415.2,
+        "water_g": 15.84,
+        "protein_g": 16.320002,
+        "carbohydrate_g": 81.12,
+        "fat_g": 1.2,
+        "sugars_g": 1.8000001,
+        "fa_saturated_g": 0.0,
+        "salt_g": 0.036000002
+      }
+    },
+    {
+      "raw_text": "2 tablespoons sugar",
+      "ingredient_name": "sugar",
+      "original_quantity": "2",
+      "original_unit": "tablespoons",
+      "preparation_notes": "",
+      "quantity_grams": 28.0,
+      "conversion_source": "LLM",
+      "conversion_notes": "Conversion based on typical density of granulated sugar (1 tablespoon ≈ 14 grams).",
+      "nutritional_info": {
+        "source_ciqual_name": "Sugar, white",
+        "kcal": 0.0,
+        "water_g": 0.0476,
+        "protein_g": 0.0,
+        "carbohydrate_g": 27.944,
+        "fat_g": 0.0,
+        "sugars_g": 27.944,
+        "fa_saturated_g": 0.0,
+        "salt_g": 0.001512
+      }
+    },
+    {
+      "raw_text": "2 teaspoons baking powder",
+      "ingredient_name": "baking powder",
+      "original_quantity": "2",
+      "original_unit": "teaspoons",
+      "preparation_notes": "",
+      "quantity_grams": 10.0,
+      "conversion_source": "LLM",
+      "conversion_notes": "Assumed standard conversion for baking powder: 1 teaspoon ≈ 5 grams. Total calculated as 2 teaspoons * 5 grams/teaspoon = 10 grams.",
+      "nutritional_info": {
+        "source_ciqual_name": "Baking powder or raising agent",
+        "kcal": 0.0,
+        "water_g": 0.54,
+        "protein_g": 0.19600001,
+        "carbohydrate_g": 3.3200002,
+        "fat_g": 0.020000001,
+        "sugars_g": 0.010000001,
+        "fa_saturated_g": 0.010000001,
+        "salt_g": 0.0
+      }
+    },
+    {
+      "raw_text": "1/2 teaspoon salt",
+      "ingredient_name": "salt",
+      "original_quantity": "1/2",
+      "original_unit": "teaspoon",
+      "preparation_notes": "",
+      "quantity_grams": 2.83495,
+      "conversion_source": "LLM",
+      "conversion_notes": "Conversion based on the average density of salt. 1 teaspoon of salt is approximately 5.67 grams, so 1/2 teaspoon is approximately 2.83495 grams.",
+      "nutritional_info": {
+        "source_ciqual_name": "Pure sea salt, no enrichment",
+        "kcal": 0.0,
+        "water_g": 0.10631063,
+        "protein_g": 0.0,
+        "carbohydrate_g": 0.0,
+        "fat_g": 0.0,
+        "sugars_g": 0.0,
+        "fa_saturated_g": 0.0,
+        "salt_g": 2.673358
+      }
+    },
+    {
+      "raw_text": "1 large egg",
+      "ingredient_name": "egg",
+      "original_quantity": "1",
+      "original_unit": "large",
+      "preparation_notes": "",
+      "quantity_grams": 50.0,
+      "conversion_source": "LLM",
+      "conversion_notes": "Average weight of a large egg is approximately 50 grams. This is an estimate based on common food densities.",
+      "nutritional_info": {
+        "source_ciqual_name": "Egg, raw",
+        "kcal": 70.0,
+        "water_g": 38.15,
+        "protein_g": 6.35,
+        "carbohydrate_g": 0.135,
+        "fat_g": 4.915,
+        "sugars_g": 0.135,
+        "fa_saturated_g": 1.32,
+        "salt_g": 0.155
+      }
+    },
+    {
+      "raw_text": "1 cup milk",
+      "ingredient_name": "milk",
+      "original_quantity": "1",
+      "original_unit": "cup",
+      "preparation_notes": "",
+      "quantity_grams": 240.0,
+      "conversion_source": "LLM",
+      "conversion_notes": "Assuming 1 cup of milk weighs approximately 240 grams, which is a common approximation based on the density of milk (around 1.03 g/mL).",
+      "nutritional_info": {
+        "source_ciqual_name": "Fermented milk drink, plain, whole milk",
+        "kcal": 133.68001,
+        "water_g": 211.92001,
+        "protein_g": 8.112,
+        "carbohydrate_g": 4.776,
+        "fat_g": 7.6800003,
+        "sugars_g": 4.776,
+        "fa_saturated_g": 5.3760004,
+        "salt_g": 0.21120001
+      }
+    },
+    {
+      "raw_text": "2 tablespoons unsalted butter, melted",
+      "ingredient_name": "unsalted butter",
+      "original_quantity": "2",
+      "original_unit": "tablespoons",
+      "preparation_notes": "melted",
+      "quantity_grams": 28.35,
+      "conversion_source": "LLM",
+      "conversion_notes": "Assuming 1 tablespoon of melted unsalted butter weighs approximately 14.175 grams. This is an average value and actual weight may vary slightly depending on the brand or temperature of the butter.",
+      "nutritional_info": {
+        "source_ciqual_name": "Butter, 82% fat, unsalted",
+        "kcal": 213.47551,
+        "water_g": 4.3659,
+        "protein_g": 0.19845001,
+        "carbohydrate_g": 0.25515002,
+        "fat_g": 23.502151,
+        "sugars_g": 0.23530501,
+        "fa_saturated_g": 15.705901,
+        "salt_g": 0.017860502
+      }
+    }
+  ],
+  "instructions": [
+    "Whisk together flour, sugar, baking powder, and salt.",
+    "In a separate bowl, beat egg, then whisk in milk and melted butter.",
+    "Pour wet ingredients into dry ingredients and whisk until just combined.",
+    "Heat a lightly oiled griddle or frying pan over medium-high heat.",
+    "Pour or scoop the batter onto the griddle, using approximately 1/4 cup for each pancake.",
+    "Brown on both sides and serve hot."
+  ],
+  "nutritional_profile": {
+    "total_calculated_mass_g": 479.18497,
+    "aggregated": {
+      "kcal": 832.3555,
+      "water_g": 270.96985,
+      "protein_g": 31.17645,
+      "carbohydrate_g": 117.550156,
+      "fat_g": 37.317154,
+      "sugars_g": 34.900307,
+      "fa_saturated_g": 22.411901,
+      "salt_g": 3.0949304
+    },
+    "per_100g": {
+      "kcal": 173.70235,
+      "water_g": 56.54807,
+      "protein_g": 6.506141,
+      "carbohydrate_g": 24.53127,
+      "fat_g": 7.78763,
+      "sugars_g": 7.283264,
+      "fa_saturated_g": 4.677088,
+      "salt_g": 0.64587384
+    }
+  }
+}
