@@ -94,36 +94,36 @@ async fn test_successful_structured_call() {
     }
     let provider = Provider::openrouter(TEST_API_KEY_ENV_VAR);
 
-    let mut properties = HashMap::new();
-    properties.insert(
-        "title".to_string(), // Changed from "movie_title"
+    let mut properties_map = HashMap::new();
+    properties_map.insert(
+        "title".to_string(), 
         JsonSchemaProperty {
             property_type: "string".to_string(),
             description: Some("The title of the movie.".to_string()),
             r#enum: None,
+            items: None,
         },
     );
-    properties.insert(
-        "year".to_string(), // Changed from "release_year"
+    properties_map.insert(
+        "year".to_string(), 
         JsonSchemaProperty {
             property_type: "integer".to_string(),
             description: Some("The year the movie was released.".to_string()),
             r#enum: None,
+            items: None,
         },
     );
-    // We can add other observed fields if we want to make the schema more complete
-    // or keep it minimal to just test the required ones.
 
     let schema = JsonSchema {
         schema_type: "object".to_string(),
-        properties,
-        required: vec!["title".to_string(), "year".to_string()], // Changed required fields
-        additional_properties: Some(true), // Allow additional properties for now
+        properties: Some(properties_map),
+        required: Some(vec!["title".to_string(), "year".to_string()]), 
+        additional_properties: Some(true), 
     };
 
     let schema_def = JsonSchemaDefinition {
         name: "movie_details".to_string(),
-        strict: Some(false), // Set strict to false as model includes other fields
+        strict: Some(false), 
         schema,
     };
 
@@ -132,7 +132,7 @@ async fn test_successful_structured_call() {
         messages: vec![
             ChatMessage {
                 role: "system".to_string(),
-                content: "You are an assistant that provides movie information in JSON format based on the provided schema. /no_thinking" // Added /no_thinking
+                content: "You are an assistant that provides movie information in JSON format based on the provided schema. /no_thinking" 
                     .to_string(),
             },
             ChatMessage {
@@ -145,7 +145,7 @@ async fn test_successful_structured_call() {
             json_schema: Some(schema_def),
         }),
         temperature: Some(0.5),
-        max_tokens: Some(300), // Increased max_tokens
+        max_tokens: Some(300), 
     };
 
     let result = provider.call_chat_completion(request).await;
@@ -155,12 +155,11 @@ async fn test_successful_structured_call() {
     let raw_content = &response.choices[0].message.content;
     assert!(!raw_content.is_empty());
 
-    // Attempt to strip markdown fences if present
     let mut json_string = raw_content.trim();
     if json_string.starts_with("```json") {
         json_string = json_string.strip_prefix("```json").unwrap_or(json_string).trim_start();
     }
-    if json_string.starts_with("```") { // General case for just ```
+    if json_string.starts_with("```") { 
         json_string = json_string.strip_prefix("```").unwrap_or(json_string).trim_start();
     }
     if json_string.ends_with("```") {
@@ -174,21 +173,19 @@ async fn test_successful_structured_call() {
         raw_content, json_string
     );
     let parsed_json = json_value.unwrap();
-    assert!(parsed_json.get("title").is_some()); // Changed from "movie_title"
+    assert!(parsed_json.get("title").is_some()); 
     assert!(parsed_json.get("title").unwrap().is_string());
-    assert!(parsed_json.get("year").is_some()); // Changed from "release_year"
+    assert!(parsed_json.get("year").is_some()); 
     assert!(parsed_json.get("year").unwrap().is_number());
 }
 
 #[tokio::test]
 #[ignore]
 async fn test_api_error_with_invalid_key() {
-    setup_test_environment(); // Loads .env if present, but we'll override for this test
+    setup_test_environment(); 
 
     const INVALID_KEY_ENV_NAME_FOR_THIS_TEST: &str = "ENV_VAR_WITH_BAD_KEY_VALUE";
     
-    // Temporarily set an environment variable for this test's scope.
-    // This ensures the env var exists but holds an invalid key.
     unsafe {
         std::env::set_var(INVALID_KEY_ENV_NAME_FOR_THIS_TEST, "this_is_a_deliberately_bad_api_key_string_for_testing");
     }
@@ -211,7 +208,6 @@ async fn test_api_error_with_invalid_key() {
         assert_eq!(status, reqwest::StatusCode::UNAUTHORIZED, "Expected 401 Unauthorized, got {} with body if any", status);
     }
 
-    // Clean up the temporarily set environment variable
     unsafe {
     std::env::remove_var(INVALID_KEY_ENV_NAME_FOR_THIS_TEST);
     }

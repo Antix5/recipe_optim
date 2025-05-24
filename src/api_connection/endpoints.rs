@@ -36,15 +36,18 @@ pub struct JsonSchemaProperty {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#enum: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub items: Option<Box<JsonSchema>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JsonSchema {
     #[serde(rename = "type")]
     pub schema_type: String,
-    pub properties: HashMap<String, JsonSchemaProperty>,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub required: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub properties: Option<HashMap<String, JsonSchemaProperty>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "additionalProperties")]
     pub additional_properties: Option<bool>,
