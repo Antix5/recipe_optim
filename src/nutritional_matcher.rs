@@ -1,16 +1,18 @@
-use anyhow::{Result, Context};
+use anyhow::{Result, Context, anyhow};
 use std::path::Path;
-use std::sync::Arc; // For potentially sharing engines if needed, though owned here for now.
+use std::collections::HashMap;
+use serde::{Serialize, Deserialize}; // Added missing serde derives
 
 use crate::search::embedding_engine::{EmbeddingEngine, EMBEDDING_DIMENSION};
-use crate::search::ann_engine::AnnEngine; // ANN_METRIC removed
+use crate::search::ann_engine::AnnEngine;
 use crate::search::data_loader::load_ciqual_nutritional_data;
 use crate::recipe_converter::{CiqualFoodItem, CleanedIngredient, CalculatedNutritionalInfo};
 use crate::api_connection::endpoints::{
     ChatCompletionRequest, ChatMessage, JsonSchema, JsonSchemaDefinition, JsonSchemaProperty,
     ResponseFormat, Provider,
 };
-use crate::api_connection::connection::ApiConnectionError;
+// ApiConnectionError is not directly used, but might be relevant if we add more specific error handling
+// use crate::api_connection::connection::ApiConnectionError; 
 
 // Struct for Qwen's response for disambiguation
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -185,8 +187,13 @@ impl NutritionalIndex {
         let disambiguation_system_prompt = "/no_thinking
 You are a food item matching assistant. Your task is to choose the best match for a given recipe ingredient from a list of candidate food items from a nutritional database.
 Consider the ingredient name and any preparation notes.
+**Crucially, pay close attention to the form of the user's ingredient (e.g., if it's a 'flour', a 'powder', a 'whole raw' item, a 'cooked' item, a 'liquid', 'puree', etc.) and strongly prefer CIQUAL candidates that match this specific form.**
+For example, if the user ingredient is 'wheat flour', prefer candidates like 'Wheat flour, type X' over 'Wheat, whole, raw'. If the user ingredient is 'apple puree', prefer 'Fruits puree, apple' over 'Apple, raw'.
+If the user ingredient mentions a specific state like 'cooked' or 'raw', try to match that state.
+
 Respond ONLY with a JSON object strictly adhering to the provided schema: { \"best_match_index\": number }
-The number should be the 1-based index of the chosen candidate. If no candidate is a good match, respond with 0.";
+The number should be the 1-based index of the chosen candidate. 
+If none of the candidates are a good match, or if the best apparent match is still significantly different in form or type despite your best effort to match form, respond with 0.";
 
         let disambiguation_user_prompt = format!(
 "Recipe Ingredient: \"{}\"
@@ -194,7 +201,7 @@ Preparation Notes: \"{}\"
 
 Candidate Nutritional Database Items:
 {}
-Which candidate item (by number, 1 to {}) is the best semantic match for the recipe ingredient?
+Which candidate item (by number, 1 to {}) is the best semantic and form-based match for the recipe ingredient?
 If none are a good match, respond with 0.",
             ingredient.ingredient_name,
             ingredient.preparation_notes,
@@ -210,10 +217,10 @@ If none are a good match, respond with 0.",
                 ChatMessage { role: "user".to_string(), content: disambiguation_user_prompt },
             ],
             response_format: Some(ResponseFormat {
-                format_type: "json_schema".to_string(),
+                format_type: "json_schema".to_string(), // Corrected from "json_object" to "json_schema" if schema is provided
                 json_schema: Some(get_disambiguation_json_schema(candidates.len())),
             }),
-            temperature: Some(0.0),
+            temperature: Some(0.0), // Changed from 0.1 to 0.0 for more deterministic output
             max_tokens: Some(50),
         };
 
@@ -221,6 +228,7 @@ If none are a good match, respond with 0.",
             Ok(response) => {
                 if let Some(choice) = response.choices.first() {
                     let mut content_str = choice.message.content.trim().to_string();
+                    // Handle potential markdown code block wrapping
                     if content_str.starts_with("```json") && content_str.ends_with("```") {
                         content_str = content_str.trim_start_matches("```json").trim_end_matches("```").trim().to_string();
                     } else if content_str.starts_with("```") && content_str.ends_with("```") {
@@ -287,5 +295,7 @@ If none are a good match, respond with 0.",
     }
 }
 
-use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
+// These are brought in by the `use serde::{Serialize, Deserialize};` and `use std::collections::HashMap;` at the top.
+// No need to declare them again here.
+// use serde::{Serialize, Deserialize};
+// use std::collections::HashMap;

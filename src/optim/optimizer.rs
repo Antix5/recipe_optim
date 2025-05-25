@@ -199,37 +199,42 @@ Output your suggested modifications as a JSON object.
 The JSON object must be the only content in your response. Do not include any explanatory text, comments, or markdown formatting (like ```json) before or after the JSON object.
 Your response must start with {{{{ and end with }}}}.
 
-The JSON object MUST adhere to the 'recipe_modification_suggestions' schema provided to you and MUST be structured EXACTLY like this example:
+The JSON object MUST adhere to the 'recipe_modification_suggestions' schema provided to you.
+The 'modifications' array MUST contain **EXACTLY ONE** modification object.
+Example of the required structure:
 {{{{
   \"modifications\": [
-    {{ \"operation\": \"replace_ingredient\", \"original_ingredient_name\": \"example original\", \"replacement_description\": \"example replacement\", \"quantity_raw\": \"100\", \"unit_raw\": \"g\", \"reasoning\": \"example reasoning for modification 1\" }},
-    {{ \"operation\": \"adjust_quantity\", \"original_ingredient_name\": \"another example\", \"quantity_raw\": \"0.5\", \"unit_raw\": \"cup\", \"reasoning\": \"example reasoning for modification 2\" }}
+    {{ \"operation\": \"replace_ingredient\", \"original_ingredient_name\": \"example original\", \"replacement_description\": \"example replacement\", \"quantity_raw\": \"100\", \"unit_raw\": \"g\", \"reasoning\": \"This single change is most impactful.\" }}
   ],
-  \"overall_reasoning\": \"This is the overall explanation for why these combined changes help meet the target.\"
+  \"overall_reasoning\": \"This is the overall explanation for why this single change helps meet the target.\"
 }}}}
-Do NOT nest this structure inside any other keys (like 'recipe_modification_suggestions').
-The 'overall_reasoning' field MUST be a string at the top level, separate from the 'modifications' array.
+Do NOT nest this structure inside any other keys.
+The 'overall_reasoning' field MUST be a string at the top level.
 
-Current MSE (Mean Squared Error) from target: {:.4} (lower is better). Aim to reduce this.
+**CRITICAL RULE: You MUST suggest EXACTLY ONE modification in the 'modifications' array.**
+This single modification should be the one you believe will have the most positive impact on reducing the MSE towards the target nutritional profile, while being culinarily sensible.
 
-Consider the following operations for the 'modifications' array:
-- 'replace_ingredient': Swap an existing ingredient with another. Specify 'original_ingredient_name', 'replacement_description' (e.g., 'low-fat Greek yogurt'), 'quantity_raw', and 'unit_raw'.
-- 'adjust_quantity': Change the amount of an existing ingredient. Specify 'original_ingredient_name', 'quantity_raw', and 'unit_raw'.
-- 'add_ingredient': Introduce a new ingredient. Specify 'replacement_description' (e.g., 'chia seeds'), 'quantity_raw', and 'unit_raw'.
-- 'remove_ingredient': Delete an ingredient. Specify 'original_ingredient_name'.
-- 'no_change': If the recipe is optimal or further changes are detrimental (in this case, the 'modifications' array should contain only one such object).
+Current MSE (Mean Squared Error) from target: {:.4} (lower is better). Aim to reduce this with your single suggested change.
+**Strategy Guidance for your SINGLE modification:**
+- **Highest Impact:** Choose the single change (replace, adjust, add, or remove an ingredient) that you predict will best improve the nutritional profile towards the targets.
+- **Culinary Sense:** The change MUST make sense for the recipe type.
+- **Targeted Modification:** If a specific macronutrient is far from target, your single change should ideally address that.
+- **No Change (as the single operation):** If you believe the recipe is already optimal or any single change would be detrimental, you can use the 'no_change' operation as your single modification.
 
-When suggesting quantities and units for modifications:
-- For 'quantity_raw', provide a string that can be parsed as a number (e.g., \"100\", \"0.5\") or a common textual quantity (e.g., \"a pinch\").
-- For 'unit_raw', provide a common unit (e.g., \"g\", \"ml\", \"cup\", \"tbsp\", \"piece\"). The system will convert this to grams.
+Consider the following operations for your **SINGLE** modification:
+- 'replace_ingredient': Swap an existing ingredient with another.
+- 'adjust_quantity': Change the amount of an existing ingredient.
+- 'add_ingredient': Introduce a new ingredient.
+- 'remove_ingredient': Delete an ingredient.
+- 'no_change': Use this if no single beneficial change can be identified.
 
-The 'Current Recipe Ingredients' list below shows ingredients with their quantities primarily in grams (g) if conversion was successful.
+When suggesting quantities and units for your single modification:
+- For 'quantity_raw', provide a string that can be parsed as a number or a common textual quantity.
+- For 'unit_raw', provide a common unit.
+
+The 'Current Recipe Ingredients' list below shows ingredients with their quantities primarily in grams (g).
 Focus on macronutrient targets (protein, carbohydrates, fat). Kcal is derived.
-Prioritize changes that make sense culinarily. Avoid drastic changes unless necessary.
-If adding or replacing, use 'replacement_description' to describe the type of ingredient (e.g., 'lean ground turkey', 'whole wheat pasta', 'unsweetened almond milk'). The system will try to find a suitable match.
-Provide reasoning for each modification in its 'reasoning' field, and an overall reasoning in the top-level 'overall_reasoning' field.
-If multiple modifications are suggested, ensure they are compatible and collectively move towards the target.
-The 'original_ingredient_name' for any modification MUST EXACTLY MATCH one of the ingredient names from the 'Current Recipe Ingredients' list provided below.
+The 'original_ingredient_name' for any modification MUST EXACTLY MATCH one of the ingredient names from the 'Current Recipe Ingredients' list.
 ",
         current_best_mse 
         );
@@ -262,18 +267,18 @@ Current Nutritional Profile (per 100g):
 - Protein: {} g
 - Carbohydrates: {} g
 - Fat: {} g
-- Sugars: {} g (for reference, not a primary target unless specified)
+- Sugars: {} g (for reference)
 - Saturated Fat: {} g (for reference)
 - Salt: {} g (for reference)
 
 Target Nutritional Profile (per 100g):
-- Kcal: {} (This is an estimate based on target macros)
+- Kcal: {} (estimate, nutriments are more important)
 - Protein: {} g
 - Carbohydrates: {} g
 - Fat: {} g
 
-Please suggest modifications to the recipe to bring its nutritional profile closer to the target values, aiming to reduce the MSE.
-Return your suggestions in the specified JSON format, structured as previously instructed (top-level 'modifications' array and 'overall_reasoning' string).
+Please suggest **EXACTLY ONE** modification to the recipe to bring its nutritional profile closer to the target values, aiming to reduce the MSE, following the strategy guidance for a single change.
+Return your suggestion in the specified JSON format (modifications array must have only one item).
 ",
             current_best_recipe.recipe_title,
             current_ingredients_text,
@@ -295,7 +300,7 @@ Return your suggestions in the specified JSON format, structured as previously i
 
         // 2. Call LLM
         let provider = Provider::openrouter(api_key_env_var);
-        let llm_schema = get_llm_modification_schema();
+        let llm_schema = get_llm_modification_schema_single_item(); // Use a schema that expects a single item
 
         let request = ChatCompletionRequest {
             model: "qwen/qwen3-32b".to_string(), 
@@ -307,8 +312,8 @@ Return your suggestions in the specified JSON format, structured as previously i
                 format_type: "json_object".to_string(), 
                 json_schema: Some(llm_schema),
             }),
-            temperature: Some(0.2), 
-            max_tokens: Some(2048),
+            temperature: Some(0.1), // Lowered temperature further
+            max_tokens: Some(1024), // Reduced max_tokens
         };
 
         progress_updater(format!("Sending request to LLM (Iteration {})...", i + 1));
@@ -332,64 +337,48 @@ Return your suggestions in the specified JSON format, structured as previously i
             }
         };
         
-        let llm_suggestion: LlmModificationResponse = match serde_json::from_str(&llm_response_str) {
-            Ok(suggestion) => suggestion,
+        let llm_suggestion: LlmModificationResponse = match serde_json::from_str::<LlmModificationResponse>(&llm_response_str) { // Added Turbofish
+            Ok(mut suggestion) => {
+                // Ensure only one modification is processed, even if LLM violates prompt
+                if suggestion.modifications.len() > 1 {
+                    progress_updater(format!("Warning: LLM returned {} modifications, but prompt asked for 1. Taking only the first.", suggestion.modifications.len()));
+                    suggestion.modifications.truncate(1);
+                }
+                if suggestion.modifications.is_empty() && !llm_response_str.contains("no_change") { // If it's empty but wasn't a deliberate no_change
+                     progress_updater(format!("LLM returned empty modifications array. Interpreting as 'no_change'. Content: {}", llm_response_str));
+                     suggestion.modifications.push(LlmRecipeModification {
+                        operation: LlmOperationType::NoChange,
+                        reasoning: Some("LLM returned empty modifications, interpreted as no change.".to_string()),
+                        ..Default::default() // Fill with None/Default
+                     });
+                }
+                suggestion
+            }
             Err(e) => {
                 progress_updater(format!("Failed to parse LLM suggestion (Iteration {}): {}. Content: '{}'", i + 1, e, llm_response_str));
-                // Attempt to parse with the wrapper if the direct parse fails due to the extra key
-                #[derive(Debug, Deserialize)]
-                struct LlmTopLevelWrapper {
-                    recipe_modification_suggestions: Option<LlmModificationResponse>, // Make it optional to handle other errors
-                    // For the case where overall_reasoning is also messed up, this won't directly help
-                    // but if the *only* issue was the top-level key, this would be a fallback.
-                }
-                if let Ok(wrapped_response) = serde_json::from_str::<LlmTopLevelWrapper>(&llm_response_str) {
-                    if let Some(inner_suggestion) = wrapped_response.recipe_modification_suggestions {
-                        progress_updater(format!("Successfully parsed LLM suggestion using a wrapper struct. This indicates the LLM included an extra top-level key."));
-                        // Check if overall_reasoning is present and valid in inner_suggestion
-                        // The provided error log shows overall_reasoning was malformed *within* the list,
-                        // so this wrapper alone won't fix that specific malformation.
-                        // For now, we'll proceed as if it might be correctly structured inside.
-                        // A more robust solution would be to pre-process the string if this pattern is consistent.
-                        inner_suggestion 
-                    } else {
-                        // Wrapper parsed, but inner structure still missing or malformed.
-                        progress_updater(format!("Wrapper parsed, but 'recipe_modification_suggestions' field was missing or its content was invalid."));
-                        return Err(anyhow!("LLM response structure error after attempting wrapper parse. Original error: {}. Content: '{}'", e, llm_response_str));
-                    }
-                } else {
-                    // Wrapper also failed, so it's a more fundamental parsing error or different structure.
-                    // Fallback to the NoChange as before.
-                    LlmModificationResponse {
-                        modifications: vec![LlmRecipeModification {
-                            operation: LlmOperationType::NoChange,
-                            reasoning: Some(format!("Failed to parse LLM JSON output (even with wrapper): {}. Content: '{}'", e, llm_response_str)),
-                            original_ingredient_name: None,
-                            replacement_description: None,
-                            new_ingredient_name: None,
-                            quantity_raw: None,
-                            unit_raw: None,
-                            preparation_notes: None,
-                        }],
-                        overall_reasoning: format!("Failed to parse LLM JSON output (even with wrapper): {}. Content: '{}'", e, llm_response_str),
-                    }
+                // Fallback to no_change if parsing fails completely
+                LlmModificationResponse {
+                    modifications: vec![LlmRecipeModification {
+                        operation: LlmOperationType::NoChange,
+                        reasoning: Some(format!("Failed to parse LLM JSON output: {}. Content: '{}'", e, llm_response_str)),
+                        ..Default::default()
+                    }],
+                    overall_reasoning: format!("Failed to parse LLM JSON output: {}. Content: '{}'", e, llm_response_str),
                 }
             }
         };
 
-        // 3. Handle NoChange or empty modifications
         if llm_suggestion.modifications.is_empty() || 
            (llm_suggestion.modifications.len() == 1 && matches!(llm_suggestion.modifications[0].operation, LlmOperationType::NoChange)) {
             progress_updater(format!("LLM suggested no changes or failed to provide valid changes. Reason: {}. Ending optimization.", 
                 llm_suggestion.modifications.first().and_then(|m| m.reasoning.as_ref()).map_or(
-                    llm_suggestion.overall_reasoning.as_str(), // Use overall_reasoning if modification-specific one is absent
+                    llm_suggestion.overall_reasoning.as_str(),
                     |s| s.as_str()
                 )
             ));
             break;
         }
         
-        // 4. Apply Modifications to create a new candidate ParsedRecipe
         let candidate_parsed_recipe = match apply_modifications_to_recipe(&current_best_recipe, &llm_suggestion, &progress_updater) {
             Ok(recipe) => recipe,
             Err(e) => {
@@ -398,7 +387,6 @@ Return your suggestions in the specified JSON format, structured as previously i
             }
         };
         
-        // 5. Process the new candidate ParsedRecipe
         progress_updater("Converting candidate recipe ingredients to grams...".to_string());
         let mut candidate_cleaned_recipe = match convert_ingredients_to_grams(&candidate_parsed_recipe, api_key_env_var, progress_updater.clone()).await {
             Ok(recipe) => recipe,
@@ -434,11 +422,9 @@ Return your suggestions in the specified JSON format, structured as previously i
             opt_f32_to_str(candidate_profile.per_100g.fat_g)
         ));
 
-        // 6. Evaluate Difference (MSE)
         let candidate_mse = calculate_mse(&candidate_profile.per_100g, target_nutrition_per_100g);
         progress_updater(format!("Candidate MSE: {:.4}", candidate_mse));
 
-        // 7. Feedback & Loop Control
         if candidate_mse < current_best_mse {
             progress_updater(format!("Found improved recipe. New MSE: {:.4} (was {:.4})", candidate_mse, current_best_mse));
             current_best_recipe = candidate_cleaned_recipe;
@@ -454,7 +440,130 @@ Return your suggestions in the specified JSON format, structured as previously i
     Ok(current_best_recipe)
 }
 
-// Define JSON schema for LlmModificationResponse for the LLM call
+// Schema for a single modification item in the array
+fn get_llm_modification_schema_single_item() -> JsonSchemaDefinition {
+    let operation_type_enum = vec![
+        "replace_ingredient".to_string(),
+        "adjust_quantity".to_string(),
+        "add_ingredient".to_string(),
+        "remove_ingredient".to_string(),
+        "no_change".to_string(),
+    ];
+
+    let mut modification_properties = HashMap::new();
+    modification_properties.insert(
+        "operation".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("The type of modification to perform.".to_string()),
+            r#enum: Some(operation_type_enum),
+            items: None,
+        },
+    );
+     modification_properties.insert(
+        "original_ingredient_name".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("Name of the ingredient to modify/remove. Required for all operations except 'add_ingredient' if it's a truly new item not replacing anything. For 'no_change', can be omitted or refer to the whole recipe concept.".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+    modification_properties.insert(
+        "replacement_description".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("Descriptive name for 'replace' or 'add' operations.".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+    modification_properties.insert(
+        "new_ingredient_name".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("Specific name of a new ingredient if known (for add/replace).".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+    modification_properties.insert(
+        "quantity_raw".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("New quantity for 'replace', 'adjust', 'add' operations.".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+    modification_properties.insert(
+        "unit_raw".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("New unit for 'replace', 'adjust', 'add' operations.".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+    modification_properties.insert(
+        "preparation_notes".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("Optional preparation notes.".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+    modification_properties.insert(
+        "reasoning".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("Brief reasoning for this specific modification.".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+    
+    let modification_schema = JsonSchema {
+        schema_type: "object".to_string(),
+        properties: Some(modification_properties),
+        required: Some(vec!["operation".to_string()]), 
+        additional_properties: Some(true), 
+    };
+
+    let mut response_properties = HashMap::new();
+    response_properties.insert(
+        "modifications".to_string(),
+        JsonSchemaProperty {
+            property_type: "array".to_string(),
+            description: Some("A list containing EXACTLY ONE suggested modification to the recipe.".to_string()),
+            items: Some(Box::new(modification_schema.clone())),
+            r#enum: None,
+        },
+    );
+    response_properties.insert(
+        "overall_reasoning".to_string(),
+        JsonSchemaProperty {
+            property_type: "string".to_string(),
+            description: Some("Overall reasoning for the single suggested modification.".to_string()),
+            r#enum: None,
+            items: None,
+        },
+    );
+
+    JsonSchemaDefinition {
+        name: "recipe_modification_suggestions_single_item".to_string(), 
+        strict: Some(true), 
+        schema: JsonSchema {
+            schema_type: "object".to_string(),
+            properties: Some(response_properties),
+            required: Some(vec!["modifications".to_string(), "overall_reasoning".to_string()]),
+            additional_properties: Some(false), 
+        },
+    }
+}
+
+#[allow(dead_code)]
 fn get_llm_modification_schema() -> JsonSchemaDefinition {
     let operation_type_enum = vec![
         "replace_ingredient".to_string(),
@@ -574,5 +683,20 @@ fn get_llm_modification_schema() -> JsonSchemaDefinition {
             required: Some(vec!["modifications".to_string(), "overall_reasoning".to_string()]),
             additional_properties: Some(false),
         },
+    }
+}
+
+impl Default for LlmRecipeModification {
+    fn default() -> Self {
+        LlmRecipeModification {
+            operation: LlmOperationType::NoChange, 
+            original_ingredient_name: None,
+            replacement_description: None,
+            new_ingredient_name: None,
+            quantity_raw: None,
+            unit_raw: None,
+            preparation_notes: None,
+            reasoning: None,
+        }
     }
 }
